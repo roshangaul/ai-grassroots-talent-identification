@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
@@ -7,12 +7,13 @@ const Home = () => {
       <section className="gradient-hero text-white py-20 px-4 rounded-b-[3rem] shadow-xl">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight">
-            AI-Based Grassroots <br className="hidden sm:block" />
-            Talent Identification
+            Talent Scout <span className="text-blue-300">AI</span>
+            <br className="hidden sm:block" />
+            <span className="text-3xl md:text-4xl">Grassroots Talent Identification</span>
           </h1>
           <p className="text-lg md:text-xl text-blue-100/90 max-w-2xl mx-auto mt-4">
             Helping talented athletes get discovered through objective performance
-            assessment and data-driven scouting.
+            assessment and AI-powered data-driven scouting.
           </p>
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Link
@@ -51,7 +52,7 @@ const Home = () => {
           </div>
           <h3 className="text-xl font-bold mt-4">AI Video Analysis</h3>
           <p className="text-gray-500 text-sm">
-            Sprint & vertical jump assessment using computer vision — future capability.
+            Sprint & vertical jump assessment using computer vision — powered by Talent Scout AI.
           </p>
         </div>
         <div className="bg-white p-7 rounded-3xl card-shadow border border-gray-100 hover:shadow-xl transition">
@@ -74,7 +75,7 @@ const Home = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

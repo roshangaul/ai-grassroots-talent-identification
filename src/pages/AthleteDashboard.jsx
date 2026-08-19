@@ -130,7 +130,7 @@ const AthleteDashboard = () => {
   return (
     <div className="min-h-[80vh] bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Profile Header */}
+        {/* Profile Header with Talent Scout AI Branding */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="flex items-center space-x-4">
@@ -148,6 +148,9 @@ const AthleteDashboard = () => {
                   </span>
                   <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
                     {athlete?.age || 'N/A'} years
+                  </span>
+                  <span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700">
+                    <i className="fas fa-search mr-1"></i>Talent Scout AI
                   </span>
                 </div>
               </div>
@@ -191,14 +194,17 @@ const AthleteDashboard = () => {
           </div>
         </div>
 
-        {/* AI Video Analysis Module */}
+        {/* AI Video Analysis Module with Talent Scout AI Branding */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="bg-blue-500/10 p-3 rounded-xl">
               <i className="fas fa-video text-2xl text-blue-600"></i>
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-blue-800">AI Video Analysis Module</h3>
+              <h3 className="text-lg font-semibold text-blue-800">
+                <i className="fas fa-search mr-2 text-blue-600"></i>
+                Talent Scout AI - Video Analysis
+              </h3>
               <p className="text-blue-600/80 text-sm">
                 Upload your performance videos for AI-powered assessment
               </p>
@@ -262,7 +268,10 @@ const AthleteDashboard = () => {
                 ×
               </button>
               
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Performance Video</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <i className="fas fa-search text-blue-600 mr-2"></i>
+                Upload Performance Video
+              </h3>
               
               {/* Upload Area */}
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition relative">
@@ -320,7 +329,10 @@ const AthleteDashboard = () => {
         {/* Test History */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">Test History</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              <i className="fas fa-history mr-2 text-blue-600"></i>
+              Test History
+            </h3>
             <span className="text-sm text-gray-500">{tests.length} tests</span>
           </div>
           <div className="overflow-x-auto">
