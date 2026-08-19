@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿opencv-python==4.8.1.78
 mediapipe==0.10.7
 numpy==1.24.3
@@ -9,3 +10,9 @@ requests==2.31.0
 python-dotenv==1.0.0
 flask==2.3.2
 flask-cors==4.0.0
+=======
+ultralytics>=8.3
+opencv-python>=4.10
+matplotlib>=3.9
+pandas>=2.2
+>>>>>>> de1915ffd37d8046c71d1d0ff6aaa08539af2ae8
