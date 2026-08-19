@@ -28,3 +28,7 @@ Thumbs.db
 # Generated analysis/output
 analysis_frames/
 results/
+
+# Node dependencies
+node_modules/
+dist/
