@@ -1,13 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Navbar from './components/Navbar'
-import Footer from './components/Footer'
-import Home from './pages/Home'
-import AthleteLogin from './pages/AthleteLogin'
-import AthleteRegister from './pages/AthleteRegister'
-import ScoutLogin from './pages/ScoutLogin'
-import ScoutRegister from './pages/ScoutRegister'
-import AthleteDashboard from './pages/AthleteDashboard'
-import ScoutDashboard from './pages/ScoutDashboard'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import AthleteLogin from './pages/AthleteLogin';
+import AthleteRegister from './pages/AthleteRegister';
+import ScoutLogin from './pages/ScoutLogin';
+import ScoutRegister from './pages/ScoutRegister';
+import AthleteDashboard from './pages/AthleteDashboard';
+import ScoutDashboard from './pages/ScoutDashboard';
 
 function App() {
   return (
@@ -28,7 +28,7 @@ function App() {
         <Footer />
       </div>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
