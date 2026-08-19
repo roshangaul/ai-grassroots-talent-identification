@@ -9,6 +9,10 @@ const AthleteDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState(null);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [aiMetrics, setAiMetrics] = useState(null);
+  const [jobId, setJobId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,22 +33,45 @@ const AthleteDashboard = () => {
         .eq('id', user.id)
         .single();
 
+      // Ensure video_urls is always an array
+      if (athleteData && !athleteData.video_urls) {
+        athleteData.video_urls = [];
+      }
+
       setAthlete(athleteData);
 
-      const { data: testData } = await supabase
-        .from('test_results')
-        .select(`
-          *,
-          test_sessions (
-            test_name,
-            test_date,
-            status
-          )
-        `)
-        .eq('athlete_id', user.id)
-        .order('assessment_date', { ascending: false });
+      // Check if athlete has AI metrics
+      if (athleteData?.ai_metrics) {
+        setAiMetrics(athleteData.ai_metrics);
+      }
 
-      setTests(testData || []);
+      // Fetch test results with better error handling
+      try {
+        const { data: testData, error } = await supabase
+          .from('test_results')
+          .select('*')
+          .eq('athlete_id', user.id)
+          .order('assessment_date', { ascending: false });
+
+        if (error) {
+          console.warn('Test results fetch warning:', error);
+          if (error.code === 'PGRST204') {
+            const { data: simpleData } = await supabase
+              .from('test_results')
+              .select('id, athlete_id, test_name, performance_score, assessment_date')
+              .eq('athlete_id', user.id)
+              .order('assessment_date', { ascending: false });
+            setTests(simpleData || []);
+          } else {
+            setTests([]);
+          }
+        } else {
+          setTests(testData || []);
+        }
+      } catch (testError) {
+        console.warn('Could not fetch test results:', testError);
+        setTests([]);
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -55,6 +82,43 @@ const AthleteDashboard = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
+  };
+
+  const pollProcessingStatus = async (jobId) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/processing/${jobId}`);
+        const data = await response.json();
+        
+        setProcessingProgress(data.progress || 0);
+        
+        if (data.status === 'completed') {
+          clearInterval(interval);
+          setProcessingStatus('completed');
+          setUploadMessage('✅ AI Analysis Complete!');
+          
+          fetchAthleteData();
+          
+          if (data.metrics) {
+            setAiMetrics(data.metrics);
+          }
+          
+          setTimeout(() => {
+            setShowUploadModal(false);
+            setUploadMessage('');
+            setProcessingStatus(null);
+            setProcessingProgress(0);
+          }, 3000);
+          
+        } else if (data.status === 'failed') {
+          clearInterval(interval);
+          setProcessingStatus('failed');
+          setUploadMessage('❌ AI Analysis Failed: ' + (data.error_message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 2000);
   };
 
   const handleVideoUpload = async (e) => {
@@ -73,6 +137,7 @@ const AthleteDashboard = () => {
 
     setUploading(true);
     setUploadMessage('');
+    setProcessingStatus('uploading');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -100,20 +165,40 @@ const AthleteDashboard = () => {
 
       if (updateError) throw updateError;
 
-      setUploadMessage('✅ Video uploaded successfully!');
-      fetchAthleteData();
+      setUploadMessage('✅ Video uploaded! Starting AI analysis...');
+      setProcessingStatus('processing');
 
-      setTimeout(() => {
-        setShowUploadModal(false);
-        setUploadMessage('');
-      }, 2000);
+      const response = await fetch('http://localhost:3001/api/video/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          athlete_id: user.id,
+          video_url: urlData.publicUrl
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) throw new Error(result.error || 'Processing failed');
+
+      setJobId(result.job_id);
+      pollProcessingStatus(result.job_id);
 
     } catch (error) {
       console.error('Upload error:', error);
       setUploadMessage('❌ Upload failed: ' + error.message);
+      setProcessingStatus('failed');
     } finally {
       setUploading(false);
     }
+  };
+
+  // ✅ NEW: Force close modal function
+  const closeModal = () => {
+    setShowUploadModal(false);
+    setUploadMessage('');
+    setProcessingStatus(null);
+    setProcessingProgress(0);
   };
 
   if (loading) {
@@ -130,7 +215,7 @@ const AthleteDashboard = () => {
   return (
     <div className="min-h-[80vh] bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Profile Header with Talent Scout AI Branding */}
+        {/* Profile Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="flex items-center space-x-4">
@@ -194,7 +279,35 @@ const AthleteDashboard = () => {
           </div>
         </div>
 
-        {/* AI Video Analysis Module with Talent Scout AI Branding */}
+        {/* AI Metrics Display */}
+        {aiMetrics && (
+          <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <i className="fas fa-robot text-blue-600 mr-2"></i>
+              AI Performance Metrics
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-blue-50 rounded-xl">
+                <p className="text-sm text-gray-500">Speed</p>
+                <p className="text-xl font-bold text-blue-600">{aiMetrics.speed?.toFixed(2) || '—'}</p>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-xl">
+                <p className="text-sm text-gray-500">Agility</p>
+                <p className="text-xl font-bold text-green-600">{aiMetrics.agility_score?.toFixed(2) || '—'}</p>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-xl">
+                <p className="text-sm text-gray-500">Jump Height</p>
+                <p className="text-xl font-bold text-purple-600">{aiMetrics.jump_height?.toFixed(2) || '—'}</p>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 rounded-xl">
+                <p className="text-sm text-gray-500">Performance Score</p>
+                <p className="text-xl font-bold text-yellow-600">{aiMetrics.performance_score?.toFixed(2) || '—'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Video Analysis Module */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="bg-blue-500/10 p-3 rounded-xl">
@@ -213,12 +326,24 @@ const AthleteDashboard = () => {
                   ✅ {athlete.video_urls.length} video(s) uploaded
                 </p>
               )}
+              {processingStatus === 'processing' && (
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${processingProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Processing... {processingProgress}%</p>
+                </div>
+              )}
             </div>
             <button 
               onClick={() => setShowUploadModal(true)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition text-sm font-medium"
+              disabled={processingStatus === 'processing'}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {athlete?.video_urls?.length > 0 ? 'Upload Another' : 'Upload Video'}
+              {processingStatus === 'processing' ? 'Processing...' : (athlete?.video_urls?.length > 0 ? 'Upload Another' : 'Upload Video')}
             </button>
           </div>
           {athlete?.video_urls && athlete.video_urls.length > 0 && (
@@ -238,32 +363,24 @@ const AthleteDashboard = () => {
           )}
         </div>
 
-        {/* Upload Modal */}
+        {/* ✅ UPDATED: Upload Modal - Close buttons always work */}
         {showUploadModal && (
           <div 
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={() => {
-              if (!uploading) {
-                setShowUploadModal(false);
-                setUploadMessage('');
-              }
+              // ✅ Clicking outside always closes
+              closeModal();
             }}
           >
             <div 
               className="bg-white rounded-2xl max-w-md w-full p-6 relative"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button - Top Right */}
+              {/* ✅ FIXED: Close button - Top Right - Always works */}
               <button 
-                onClick={() => {
-                  if (!uploading) {
-                    setShowUploadModal(false);
-                    setUploadMessage('');
-                  }
-                }}
+                onClick={closeModal}
                 className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl"
                 type="button"
-                disabled={uploading}
               >
                 ×
               </button>
@@ -282,8 +399,8 @@ const AthleteDashboard = () => {
                   type="file"
                   accept="video/*"
                   onChange={handleVideoUpload}
-                  disabled={uploading}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  disabled={uploading || processingStatus === 'processing'}
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -308,17 +425,11 @@ const AthleteDashboard = () => {
                 </div>
               )}
 
-              {/* Close Button - Bottom */}
+              {/* ✅ FIXED: Close Button - Bottom - Always works */}
               <button
-                onClick={() => {
-                  if (!uploading) {
-                    setShowUploadModal(false);
-                    setUploadMessage('');
-                  }
-                }}
+                onClick={closeModal}
                 className="mt-4 w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition text-sm font-medium"
                 type="button"
-                disabled={uploading}
               >
                 Close
               </button>
