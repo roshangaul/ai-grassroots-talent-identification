@@ -1,34 +1,10 @@
-# Virtual environment
+.venv/
 venv/
-
-# Python
+node_modules/
 __pycache__/
 *.pyc
-
-# Videos
-videos/
+.env
+server/.env
 *.mp4
-*.avi
-
-# Generated data/output
-data/*.csv
-outputs/
-runs/
-
-# ML model weights
 *.pt
-*.onnx
-
-# IDE
-.vscode/
-
-# OS
-.DS_Store
-Thumbs.db
-# Generated analysis/output
-analysis_frames/
-results/
-
-# Node dependencies
-node_modules/
 dist/
