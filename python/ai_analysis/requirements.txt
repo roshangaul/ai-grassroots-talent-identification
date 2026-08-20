@@ -1,18 +1,22 @@
-<<<<<<< HEAD
-﻿opencv-python==4.8.1.78
-mediapipe==0.10.7
-numpy==1.24.3
-scikit-learn==1.3.0
-scipy==1.11.2
-ultralytics==8.0.196
-boto3==1.28.45
-requests==2.31.0
-python-dotenv==1.0.0
-flask==2.3.2
-flask-cors==4.0.0
-=======
-ultralytics>=8.3
-opencv-python>=4.10
-matplotlib>=3.9
-pandas>=2.2
->>>>>>> de1915ffd37d8046c71d1d0ff6aaa08539af2ae8
+# Computer Vision / AI
+ultralytics==8.4.12
+opencv-python==4.11.0.86
+mediapipe==0.10.21
+lap==0.5.12
+
+# Numerical / Data Processing
+numpy==2.1.3
+pandas==2.2.3
+scipy==1.15.1
+
+# Visualization
+matplotlib==3.10.0
+
+# Python Web Service
+Flask==3.1.0
+Flask-Cors==5.0.1
+requests==2.32.3
+python-dotenv==1.0.1
+
+# Supabase
+supabase==2.15.1
